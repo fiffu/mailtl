@@ -1,0 +1,25 @@
+version: "3.8"
+services:
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - TERM=linux
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-polystat-panel
+    ports:
+      - '3000:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prom
+    restart: unless-stopped
+    ports:
+      - '3001:9090'
+    volumes:
+      - 'prometheus.yml:/etc/prometheus/prometheus.yml'
+
+volumes:
+  grafana_storage: {}

@@ -1,0 +1,12 @@
+{
+    "log_dest": "stdout",
+    "log_level": "info",
+    "smtp_port": 2525,
+    "pipeline": "filter_by_sender|save_instarem_charge",
+    "allowed_senders": [
+        "donotreply@instarem.com"
+    ],
+    "allowed_hosts": [
+        "gmail.com"
+    ]
+}
