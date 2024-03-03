@@ -3,6 +3,27 @@
 mailtl = email + transform + load
 
 
+#### Requirements
+
+- Go 1.20
+
+
+#### Development
+
+Run this to setup the development env:
+```sh
+make
+```
+
+This will
+- install dependencies
+- install dev tooling (`mockery`, `gotestsum`)
+- setup git hooks
+- run unit tests
+
+
+#### Run
+
 To run server with default config:
 ```sh
 go run main.go

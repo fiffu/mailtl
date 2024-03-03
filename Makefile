@@ -1,12 +1,12 @@
-all: setup test
+all: deps tooling test
 
-setup: .bin
-	cp pre-commit .git/hooks/pre-commit
+deps:
 	go get
 
-.bin:
+tooling:
 	go install github.com/vektra/mockery/v2@v2.38.0
 	go install gotest.tools/gotestsum@v1.8.1
+	cp pre-commit .git/hooks/pre-commit
 
 test:
 	gotestsum -f dots -- -failfast -covermode=count -coverprofile coverage.out ./...
