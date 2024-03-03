@@ -1,6 +1,8 @@
 package filter
 
 import (
+	"context"
+
 	"github.com/fiffu/mailtl/app/infra"
 	"github.com/fiffu/mailtl/lib"
 	"github.com/flashmob/go-guerrilla/backends"
@@ -28,19 +30,19 @@ func (sf *FilterBySender) Initialize(_ backends.BackendConfig) error { return ni
 
 func (sf *FilterBySender) Shutdown() error { return nil }
 
-func (sf *FilterBySender) logFields(e *mail.Envelope) {
-	sf.Infof("* MailFrom: %v", e.MailFrom.String())
-	sf.Infof("* RemoteIP: %v", e.RemoteIP)
-	sf.Infof("* RcptTo:   %v", lib.StringsOf(lib.IndirectsOf(e.RcptTo)))
-	sf.Infof("* Subject:  %s", e.Subject)
+func (sf *FilterBySender) logFields(ctx context.Context, e *mail.Envelope) {
+	sf.Infof(ctx, "* MailFrom: %v", e.MailFrom.String())
+	sf.Infof(ctx, "* RemoteIP: %v", e.RemoteIP)
+	sf.Infof(ctx, "* RcptTo:   %v", lib.StringsOf(lib.IndirectsOf(e.RcptTo)))
+	sf.Infof(ctx, "* Subject:  %s", e.Subject)
 }
 
 func (sf *FilterBySender) isAllowedSender(mailFrom string) bool {
 	return slices.Contains(sf.allowedSenders, mailFrom)
 }
 
-func (sf *FilterBySender) SaveMail(e *mail.Envelope) (continueProcessing bool, err error) {
-	sf.logFields(e)
+func (sf *FilterBySender) SaveMail(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
+	sf.logFields(ctx, e)
 
 	if !sf.isAllowedSender(e.MailFrom.String()) {
 		return false, nil

@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -35,9 +36,9 @@ func NewLogger(root RootLogger, name string) LogFacade {
 }
 
 type LogFacade interface {
-	Debugf(msg string, args ...any)
-	Infof(msg string, args ...any)
-	Errorf(err error, msg string, args ...any)
+	Debugf(ctx context.Context, msg string, args ...any)
+	Infof(ctx context.Context, msg string, args ...any)
+	Errorf(ctx context.Context, err error, msg string, args ...any)
 }
 
 type facadeImpl struct {
@@ -49,15 +50,15 @@ func (f facadeImpl) fields() map[string]any {
 	return f.staticFields
 }
 
-func (f facadeImpl) Debugf(msg string, args ...any) {
+func (f facadeImpl) Debugf(ctx context.Context, msg string, args ...any) {
 	f.root.WithFields(f.fields()).Debugf(msg, args...)
 }
 
-func (f facadeImpl) Infof(msg string, args ...any) {
+func (f facadeImpl) Infof(ctx context.Context, msg string, args ...any) {
 	f.root.WithFields(f.fields()).Infof(msg, args...)
 }
 
-func (f facadeImpl) Errorf(err error, msg string, args ...any) {
+func (f facadeImpl) Errorf(ctx context.Context, err error, msg string, args ...any) {
 	f.root.WithFields(f.fields()).WithError(err).Errorf(msg, args...)
 }
 

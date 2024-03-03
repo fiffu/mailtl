@@ -1,6 +1,7 @@
 package save
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -55,9 +56,9 @@ func (d *SaveInstaremCharge) Initialize(_ backends.BackendConfig) error { return
 
 func (d *SaveInstaremCharge) Shutdown() error { return nil }
 
-func (d *SaveInstaremCharge) SaveMail(e *mail.Envelope) (continueProcessing bool, err error) {
+func (d *SaveInstaremCharge) SaveMail(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
 	if e.MailFrom.String() != instaremSender.String() {
-		d.Infof("Ignoring; expected: %s, got: %s)", instaremSender.String(), e.MailFrom.String())
+		d.Infof(ctx, "Ignoring; expected: %s, got: %s)", instaremSender.String(), e.MailFrom.String())
 		return true, nil
 	}
 
@@ -65,16 +66,16 @@ func (d *SaveInstaremCharge) SaveMail(e *mail.Envelope) (continueProcessing bool
 
 	text, err := extraction.ExtractXPath(data, contentXPath)
 	if err != nil {
-		d.Infof("Ignoring: %v", err)
+		d.Infof(ctx, "Ignoring: %v", err)
 		return true, nil
 	}
 
 	match, err := d.matchesPattern(text)
 	if err != nil {
-		d.Errorf(err, "No match in mail body: '%s'", text)
+		d.Errorf(ctx, err, "No match in mail body: '%s'", text)
 	}
 
-	go d.save(match)
+	go d.save(ctx, match)
 	return true, nil
 }
 
@@ -89,8 +90,9 @@ func (d *SaveInstaremCharge) matchesPattern(text string) (match matchData, err e
 	return
 }
 
-func (d *SaveInstaremCharge) save(match matchData) error {
+func (d *SaveInstaremCharge) save(ctx context.Context, match matchData) error {
+	// TODO
 	formatted, _ := json.MarshalIndent(match, "", "  ")
-	d.Infof(string(formatted))
+	d.Infof(ctx, string(formatted))
 	return nil
 }
