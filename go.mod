@@ -8,12 +8,12 @@ require (
 	github.com/DusanKasan/parsemail v1.2.0
 	github.com/antchfx/htmlquery v1.3.0
 	github.com/flashmob/go-guerrilla v1.6.1
-	github.com/lib/pq v1.10.9
 	github.com/oriser/regroup v0.0.0-20230527212431-1b00c9bdbc5b
 	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v2 v2.27.1
 	go.uber.org/fx v1.20.1
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	modernc.org/sqlite v1.37.0
 )
 
 require (
@@ -44,5 +44,4 @@ require (
 	modernc.org/libc v1.62.1 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.9.1 // indirect
-	modernc.org/sqlite v1.37.0 // indirect
 )

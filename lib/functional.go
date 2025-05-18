@@ -24,15 +24,20 @@ func IndirectsOf[T any](in []T) []*T {
 	)
 }
 
-// Drops the first argument passed to this function.
-// Useful for ignoring the first return value of a function call.
+// DropError suppresses the error argument passed to this function.
+// Useful for ignoring errors(?), use with care!
+func DropError[T any](val T, _ error) T {
+	return val
+}
+
+// DropResult suppresses the first argument passed to this function.
 //
 //	// Example:
 //	_, err := foo()
 //	return err
 //
 //	// Equivalent to:
-//	return Just(foo())
-func Just[T any](_ T, err error) error {
+//	return DropResult(foo())
+func DropResult[T any](_ T, err error) error {
 	return err
 }

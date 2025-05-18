@@ -9,21 +9,6 @@ import (
 	"github.com/flashmob/go-guerrilla/response"
 )
 
-type customCtxKey struct{}
-
-var ctxKey = customCtxKey{}
-
-type CustomContext struct {
-	Fingerprint string
-}
-
-func fingerprint(envelope *mail.Envelope) string {
-	id := envelope.QueuedId
-	from := envelope.MailFrom.String()
-	subject := envelope.Subject
-	return fmt.Sprintf("<Envelope %s from='%s' subj='%s'>", id, from, subject)
-}
-
 func deriveContext(envelope *mail.Envelope) (context.Context, error) {
 	if envelope.Header == nil {
 		if err := envelope.ParseHeaders(); err != nil {
@@ -32,9 +17,6 @@ func deriveContext(envelope *mail.Envelope) (context.Context, error) {
 	}
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, ctxKey, CustomContext{
-		Fingerprint: fingerprint(envelope),
-	})
 	return ctx, nil
 }
 
