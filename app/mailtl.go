@@ -31,12 +31,14 @@ func NewMailTL(
 	root infra.RootLogger,
 	senderFilter *processors.FilterBySender,
 	saveInstaremCharge *processors.SaveInstaremCharge,
+	saveDBSDigibankCharge *processors.SaveDBSDigibankCharge,
 ) (MailTL, error) {
 	m := MailTL{daemon}
 	m.registerBackends(
 		infra.NewLogger(root, "backends"),
 		senderFilter,
 		saveInstaremCharge,
+		saveDBSDigibankCharge,
 	)
 
 	hooks := fx.Hook{

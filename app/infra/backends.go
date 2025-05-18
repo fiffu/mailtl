@@ -47,6 +47,8 @@ func MakeProcessor(log LogFacade, b Backend) backends.ProcessorConstructor {
 					ctx = context.Background()
 				}
 
+				log.Debugf(ctx, "Processing with %T", b)
+
 				var stopProcessing bool
 				switch task {
 				// case backends.TaskValidateRcpt:

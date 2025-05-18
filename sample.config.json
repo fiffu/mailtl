@@ -3,9 +3,10 @@
     "log_level": "info",
     "sqlite_dsn": "./mailtl.sqlite",
     "smtp_port": 2525,
-    "pipeline": "filter_by_sender|save_instarem_charge",
+    "pipeline": "filter_by_sender|save_instarem_charge|save_dbs_digibank_charge",
     "allowed_senders": [
-        "donotreply@instarem.com"
+        "donotreply@instarem.com",
+        "ibanking.alert@dbs.com"
     ],
     "allowed_hosts": [
         "gmail.com"

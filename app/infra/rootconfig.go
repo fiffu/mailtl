@@ -14,7 +14,7 @@ type RootConfig struct {
 
 	SMTPPort       int      `json:"smtp_port"`
 	Pipeline       string   `json:"pipeline"`
-	AllowedSenders []string `json:"allowed_senders"`
+	AllowedSenders []string `json:"allowed_senders"` // FIXME: Infer from backends
 	AllowedHosts   []string `json:"allowed_hosts"`
 }
 

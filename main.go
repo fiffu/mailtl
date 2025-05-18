@@ -15,6 +15,7 @@ func main() {
 		fx.Provide(guerrillad.NewGuerillaDaemon),
 		fx.Provide(processors.NewFilterBySender),
 		fx.Provide(processors.NewSaveInstaremCharge),
+		fx.Provide(processors.NewSaveDBSDigibankCharge),
 
 		// Infra glue
 		fx.Provide(infra.NewRootConfig),

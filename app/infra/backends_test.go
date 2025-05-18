@@ -39,8 +39,9 @@ func TestMakeProcessor_TaskSaveMail(t *testing.T) {
 			e := testfixtures.NewEnvelope()
 
 			log := mocks.NewLogFacade(t)
-
 			be := mocks.NewBackend(t)
+
+			log.On("Debugf", ctx, "Processing with %T", be)
 			be.On("HandleTaskSaveMail", ctx, e).Return(tc.stopProcessing, tc.backendErr)
 			be.On("Name").Maybe().Return("test_backend_name")
 
@@ -73,6 +74,7 @@ func TestMakeProcessor_UnknownTask(t *testing.T) {
 	e := testfixtures.NewEnvelope()
 	be := mocks.NewBackend(t)
 	log := mocks.NewLogFacade(t)
+	log.On("Debugf", mock.Anything, mock.Anything, mock.Anything)
 
 	next := mocks.NewFixtureBackend(t)
 	next.On("Process", e, unknownTask).Return(nil, nil)

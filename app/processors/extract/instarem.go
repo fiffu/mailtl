@@ -15,7 +15,7 @@ import (
 var (
 	errUnknownParserVersion = errors.New("unknown parser version")
 
-	instaremV1Sender = mail.Address{
+	instaremSender = mail.Address{
 		User:        "donotreply",
 		Host:        "instarem.com",
 		DisplayName: "Instarem notification",
@@ -90,12 +90,10 @@ func (i *instaremMatch) parseTimestamp(version int) (time.Time, error) {
 	return time.Parse(layout, ts)
 }
 
-type Instarem struct {
-	*mail.Envelope
-}
+type Instarem struct{ *mail.Envelope }
 
 func (i *Instarem) Match() bool {
-	return i.MailFrom.String() == instaremV1Sender.String()
+	return i.MailFrom.String() == instaremSender.String()
 }
 
 func (i *Instarem) Extract() (charge *model.Charge, err error) {
