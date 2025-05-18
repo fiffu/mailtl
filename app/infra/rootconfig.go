@@ -14,6 +14,8 @@ type RootConfig struct {
 	Pipeline       string   `json:"pipeline"`
 	AllowedSenders []string `json:"allowed_senders"`
 	AllowedHosts   []string `json:"allowed_hosts"`
+
+	SQLiteDSN string `json:"sqlite_dsn"`
 }
 
 var defaultConfig = RootConfig{

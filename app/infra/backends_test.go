@@ -40,7 +40,7 @@ func TestMakeProcessor_TaskSaveMail(t *testing.T) {
 			e := testfixtures.NewEnvelope()
 
 			be := mocks.NewBackend(t)
-			be.On("SaveMail", ctx, e).Return(tc.backendContinue, tc.backendErr)
+			be.On("Handle", ctx, e).Return(tc.backendContinue, tc.backendErr)
 
 			next := mocks.NewFixtureBackend(t)
 			if tc.backendContinue {

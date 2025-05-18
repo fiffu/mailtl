@@ -43,7 +43,7 @@ type Backend interface {
 	Name() string
 	Initialize(backendConfig backends.BackendConfig) error
 	Shutdown() error
-	SaveMail(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error)
+	Handle(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error)
 }
 
 // FixtureBackend embeds backends.Processor. This is intended for testing purposes only.
@@ -73,7 +73,7 @@ func MakeProcessor(b Backend) backends.ProcessorConstructor {
 
 				case backends.TaskSaveMail:
 					// We only handle save tasks to simplify (just use a single call chain along "save_process")
-					continueProcessing, err = b.SaveMail(ctx, e)
+					continueProcessing, err = b.Handle(ctx, e)
 
 				default:
 					continueProcessing = false

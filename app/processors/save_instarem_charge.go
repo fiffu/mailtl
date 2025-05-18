@@ -1,4 +1,4 @@
-package save
+package processors
 
 import (
 	"context"
@@ -11,8 +11,6 @@ import (
 	"github.com/flashmob/go-guerrilla/mail"
 	"github.com/oriser/regroup"
 )
-
-const name = "save_instarem_charge"
 
 var instaremSender = mail.Address{
 	User:        "donotreply",
@@ -47,16 +45,16 @@ type matchData struct {
 type SaveInstaremCharge struct{ infra.LogFacade }
 
 func NewSaveInstaremCharge(root infra.RootLogger) (*SaveInstaremCharge, error) {
-	return &SaveInstaremCharge{infra.NewLogger(root, name)}, nil
+	return &SaveInstaremCharge{infra.NewLogger(root, "save_instarem_charge")}, nil
 }
 
-func (d *SaveInstaremCharge) Name() string { return name }
+func (d *SaveInstaremCharge) Name() string { return "save_instarem_charge" }
 
 func (d *SaveInstaremCharge) Initialize(_ backends.BackendConfig) error { return nil }
 
 func (d *SaveInstaremCharge) Shutdown() error { return nil }
 
-func (d *SaveInstaremCharge) SaveMail(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
+func (d *SaveInstaremCharge) Handle(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
 	if e.MailFrom.String() != instaremSender.String() {
 		d.Infof(ctx, "Ignoring; expected: %s, got: %s)", instaremSender.String(), e.MailFrom.String())
 		return true, nil

@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/fiffu/mailtl/app/infra"
-	"github.com/fiffu/mailtl/app/processors/filter"
-	"github.com/fiffu/mailtl/app/processors/save"
+	"github.com/fiffu/mailtl/app/processors"
+	"github.com/fiffu/mailtl/app/storage"
 	"github.com/flashmob/go-guerrilla"
 	"go.uber.org/fx"
 )
@@ -27,8 +27,9 @@ func (m MailTL) registerBackends(backends ...infra.Backend) {
 func NewMailTL(
 	lc fx.Lifecycle,
 	daemon guerrilla.Daemon,
-	senderFilter *filter.FilterBySender,
-	saveInstaremCharge *save.SaveInstaremCharge,
+	store storage.Storage,
+	senderFilter *processors.FilterBySender,
+	saveInstaremCharge *processors.SaveInstaremCharge,
 ) (MailTL, error) {
 	m := MailTL{daemon}
 	m.registerBackends(

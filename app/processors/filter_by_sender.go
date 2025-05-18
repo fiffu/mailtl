@@ -1,4 +1,4 @@
-package filter
+package processors
 
 import (
 	"context"
@@ -10,8 +10,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const name = "filter_by_sender"
-
 type FilterBySender struct {
 	infra.LogFacade
 	allowedSenders []string
@@ -19,12 +17,12 @@ type FilterBySender struct {
 
 func NewFilterBySender(root infra.RootLogger, rootConfig infra.RootConfig) (*FilterBySender, error) {
 	return &FilterBySender{
-		LogFacade:      infra.NewLogger(root, name),
+		LogFacade:      infra.NewLogger(root, "filter_by_sender"),
 		allowedSenders: rootConfig.AllowedSenders,
 	}, nil
 }
 
-func (sf *FilterBySender) Name() string { return name }
+func (sf *FilterBySender) Name() string { return "filter_by_sender" }
 
 func (sf *FilterBySender) Initialize(_ backends.BackendConfig) error { return nil }
 
@@ -41,7 +39,7 @@ func (sf *FilterBySender) isAllowedSender(mailFrom string) bool {
 	return slices.Contains(sf.allowedSenders, mailFrom)
 }
 
-func (sf *FilterBySender) SaveMail(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
+func (sf *FilterBySender) Handle(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
 	sf.logFields(ctx, e)
 
 	if !sf.isAllowedSender(e.MailFrom.String()) {
