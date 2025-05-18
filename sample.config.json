@@ -1,7 +1,7 @@
 {
     "log_dest": "stdout",
     "log_level": "info",
-    "sqlite_dsn": ":memory:",
+    "sqlite_dsn": "./mailtl.sqlite",
     "smtp_port": 2525,
     "pipeline": "filter_by_sender|save_instarem_charge",
     "allowed_senders": [

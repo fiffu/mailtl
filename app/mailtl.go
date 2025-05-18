@@ -15,11 +15,11 @@ type MailTL struct{ guerrilla.Daemon }
 
 func (m MailTL) onStart(ctx context.Context) error { return m.Start() }
 func (m MailTL) onStop(ctx context.Context) error  { m.Shutdown(); return nil }
-func (m MailTL) registerBackends(backends ...infra.Backend) {
+func (m MailTL) registerBackends(log infra.LogFacade, backends ...infra.Backend) {
 	for _, backend := range backends {
 		m.AddProcessor(
 			backend.Name(),
-			infra.MakeProcessor(backend),
+			infra.MakeProcessor(log, backend),
 		)
 	}
 }
@@ -28,11 +28,13 @@ func NewMailTL(
 	lc fx.Lifecycle,
 	daemon guerrilla.Daemon,
 	store storage.Storage,
+	root infra.RootLogger,
 	senderFilter *processors.FilterBySender,
 	saveInstaremCharge *processors.SaveInstaremCharge,
 ) (MailTL, error) {
 	m := MailTL{daemon}
 	m.registerBackends(
+		infra.NewLogger(root, "backends"),
 		senderFilter,
 		saveInstaremCharge,
 	)

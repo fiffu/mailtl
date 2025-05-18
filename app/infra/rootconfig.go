@@ -8,27 +8,14 @@ import (
 )
 
 type RootConfig struct {
-	LogDest        string   `json:"log_dest"`
-	LogLevel       string   `json:"log_level"`
+	LogDest   string `json:"log_dest"`
+	LogLevel  string `json:"log_level"`
+	SQLiteDSN string `json:"sqlite_dsn"`
+
 	SMTPPort       int      `json:"smtp_port"`
 	Pipeline       string   `json:"pipeline"`
 	AllowedSenders []string `json:"allowed_senders"`
 	AllowedHosts   []string `json:"allowed_hosts"`
-
-	SQLiteDSN string `json:"sqlite_dsn"`
-}
-
-var defaultConfig = RootConfig{
-	LogDest:  "stdout",
-	LogLevel: "info",
-	SMTPPort: 2525,
-	Pipeline: "filter_by_sender|save_instarem_charge",
-	AllowedSenders: []string{
-		"donotreply@instarem.com", // We expect to only receive emails forwarded from Gmail
-	},
-	AllowedHosts: []string{
-		"gmail.com",
-	},
 }
 
 func NewRootConfig() (cfg RootConfig, err error) {
@@ -41,7 +28,7 @@ func NewRootConfig() (cfg RootConfig, err error) {
 		}
 		return
 	}
-	return defaultConfig, nil
+	return cfg, nil
 }
 
 func parseConfig(configFile string) (cfg RootConfig, err error) {

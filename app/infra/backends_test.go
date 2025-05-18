@@ -14,14 +14,14 @@ import (
 
 func TestMakeProcessor_TaskSaveMail(t *testing.T) {
 	testCases := []struct {
-		backendContinue bool
-		backendErr      error
+		stopProcessing bool
+		backendErr     error
 	}{
 		{
-			backendContinue: true,
+			stopProcessing: true,
 		},
 		{
-			backendContinue: false,
+			stopProcessing: false,
 		},
 		{
 			backendErr: assert.AnError,
@@ -29,37 +29,40 @@ func TestMakeProcessor_TaskSaveMail(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		const task = backends.TaskSaveMail
-		var expectRes = backends.NewResult(response.Canned.SuccessNoopCmd)
 		desc := fmt.Sprintf(
 			"when processor receives %s, and backend returns continue=%v err=%v",
-			task, tc.backendContinue, tc.backendErr,
+			task, tc.stopProcessing, tc.backendErr != nil,
 		)
 
 		t.Run(desc, func(t *testing.T) {
 			ctx := mock.Anything
 			e := testfixtures.NewEnvelope()
 
+			log := mocks.NewLogFacade(t)
+
 			be := mocks.NewBackend(t)
-			be.On("Handle", ctx, e).Return(tc.backendContinue, tc.backendErr)
+			be.On("HandleTaskSaveMail", ctx, e).Return(tc.stopProcessing, tc.backendErr)
+			be.On("Name").Maybe().Return("test_backend_name")
 
 			next := mocks.NewFixtureBackend(t)
-			if tc.backendContinue {
-				// Expect next processor to receive a call gracefully
-				next.On("Process", e, task).
-					Return(expectRes, nil)
+
+			var expectErr error
+			expectRes := backends.NewResult(response.Canned.SuccessNoopCmd)
+			switch {
+			case tc.backendErr != nil:
+				log.On("Errorf", ctx, tc.backendErr, "Processor %s errored", "test_backend_name").Return()
+				expectErr = tc.backendErr
+				expectRes = backends.NewResult(fmt.Sprintf("554 Error: %s", tc.backendErr))
+			case tc.stopProcessing == false:
+				next.On("Process", e, task).Return(expectRes, nil)
 			}
 
-			constructor := MakeProcessor(be)
-			proc := constructor()
+			proc := MakeProcessor(log, be)()
 			assert.NotNil(t, proc)
 
 			res, err := proc(next).Process(e, task)
-			if tc.backendErr != nil {
-				expectRes = backends.NewResult(fmt.Sprintf("554 Error: %s", err))
-				assert.Error(t, err)
-			}
 			assert.Equal(t, expectRes, res)
-			assert.Equal(t, tc.backendErr, err, "processor should return the exact error from backend")
+			assert.Equal(t, expectErr, err)
 		})
 	}
 }
@@ -69,11 +72,14 @@ func TestMakeProcessor_UnknownTask(t *testing.T) {
 
 	e := testfixtures.NewEnvelope()
 	be := mocks.NewBackend(t)
+	log := mocks.NewLogFacade(t)
 
 	next := mocks.NewFixtureBackend(t)
-	proc := MakeProcessor(be)()
+	next.On("Process", e, unknownTask).Return(nil, nil)
+
+	proc := MakeProcessor(log, be)()
 
 	res, err := proc(next).Process(e, unknownTask)
 	assert.NoError(t, err)
-	assert.Equal(t, backends.NewResult(response.Canned.SuccessNoopCmd), res)
+	assert.Equal(t, nil, res)
 }

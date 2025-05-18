@@ -1,5 +1,10 @@
 version: "3.8"
 services:
+  postres:
+    image: postgres:16
+    container_name: pg
+    restart: unless-stopped
+    
   grafana:
     image: grafana/grafana-oss
     container_name: grafana

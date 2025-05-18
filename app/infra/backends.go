@@ -43,7 +43,7 @@ type Backend interface {
 	Name() string
 	Initialize(backendConfig backends.BackendConfig) error
 	Shutdown() error
-	Handle(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error)
+	HandleTaskSaveMail(ctx context.Context, e *mail.Envelope) (stopProcessing bool, err error)
 }
 
 // FixtureBackend embeds backends.Processor. This is intended for testing purposes only.
@@ -53,7 +53,7 @@ type FixtureBackend interface{ backends.Processor }
 
 var NoopAndContinue = func() (backends.Result, error, bool) { return nil, nil, true }
 
-func MakeProcessor(b Backend) backends.ProcessorConstructor {
+func MakeProcessor(log LogFacade, b Backend) backends.ProcessorConstructor {
 	backends.Svc.AddInitializer(b)
 	backends.Svc.AddShutdowner(b)
 
@@ -65,25 +65,22 @@ func MakeProcessor(b Backend) backends.ProcessorConstructor {
 					ctx = context.Background()
 				}
 
-				var continueProcessing bool
-
+				var stopProcessing bool
 				switch task {
 				// case backends.TaskValidateRcpt:
-				// 	continueProcessing, err = b.Validate(e)
+				// 	stopProcessing, err = b.Validate(e)
 
 				case backends.TaskSaveMail:
 					// We only handle save tasks to simplify (just use a single call chain along "save_process")
-					continueProcessing, err = b.Handle(ctx, e)
-
-				default:
-					continueProcessing = false
+					stopProcessing, err = b.HandleTaskSaveMail(ctx, e)
 				}
 
 				if err != nil {
+					log.Errorf(ctx, err, "Processor %s errored", b.Name())
 					res = backends.NewResult(fmt.Sprintf("554 Error: %s", err))
 					return
 				}
-				if !continueProcessing {
+				if stopProcessing {
 					res = backends.NewResult(response.Canned.SuccessNoopCmd)
 					return
 				}

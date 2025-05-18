@@ -35,6 +35,7 @@ func NewLogger(root RootLogger, name string) LogFacade {
 	}
 }
 
+//go:generate mockery --name LogFacade
 type LogFacade interface {
 	Debugf(ctx context.Context, msg string, args ...any)
 	Infof(ctx context.Context, msg string, args ...any)

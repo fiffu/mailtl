@@ -23,3 +23,16 @@ func IndirectsOf[T any](in []T) []*T {
 		func(t T) *T { return &t },
 	)
 }
+
+// Drops the first argument passed to this function.
+// Useful for ignoring the first return value of a function call.
+//
+//	// Example:
+//	_, err := foo()
+//	return err
+//
+//	// Equivalent to:
+//	return Just(foo())
+func Just[T any](_ T, err error) error {
+	return err
+}

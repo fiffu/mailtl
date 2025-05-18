@@ -17,12 +17,12 @@ type Backend struct {
 	mock.Mock
 }
 
-// Handle provides a mock function with given fields: ctx, e
-func (_m *Backend) Handle(ctx context.Context, e *mail.Envelope) (bool, error) {
+// HandleTaskSaveMail provides a mock function with given fields: ctx, e
+func (_m *Backend) HandleTaskSaveMail(ctx context.Context, e *mail.Envelope) (bool, error) {
 	ret := _m.Called(ctx, e)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Handle")
+		panic("no return value specified for HandleTaskSaveMail")
 	}
 
 	var r0 bool

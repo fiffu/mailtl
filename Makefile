@@ -1,10 +1,10 @@
 all: deps tooling test
 
-MIGRATIONS_DIR := storage/migrations
+MIGRATIONS_DIR := app/storage/migrations
 migration:
 	@NAME=
 	@if [ -z "$(NAME)" ]; then \
-		echo "Error: NAME is required. Usage: make makemigration NAME='Your migration name'"; \
+		echo "Error: NAME is required. Usage: make migration NAME='Your migration name'"; \
 		exit 1; \
 	fi
 	@mkdir -p $(MIGRATIONS_DIR)
@@ -27,6 +27,6 @@ test:
 
 	@go tool cover -func=coverage.out | grep 'total' | sed -e 's/\t\+/ /g' | sed -e 's/total: (statements)/TEST COVERAGE:/'
 
+CONFIG ?= sample.config.json
 run:
-	CONFIG=sample.config.json
-	go run main.go $$CONFIG
+	go run main.go $(CONFIG)

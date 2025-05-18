@@ -2,10 +2,11 @@ package processors
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 
 	"github.com/fiffu/mailtl/app/infra"
+	"github.com/fiffu/mailtl/app/model"
+	"github.com/fiffu/mailtl/app/storage"
 	"github.com/fiffu/mailtl/lib/extraction"
 	"github.com/flashmob/go-guerrilla/backends"
 	"github.com/flashmob/go-guerrilla/mail"
@@ -19,9 +20,9 @@ var instaremSender = mail.Address{
 }
 
 var (
-	contentXPath = "//span[2]"
+	instaremContentXPath = "//span[2]"
 
-	contentPattern = regroup.MustCompile(
+	instaremContentPattern = regroup.MustCompile(
 		`We're notifying you that` +
 			` (?P<localCurrency>[A-Z]{2,3}) (?P<localAmount>[\d\.]+)` +
 			` was debited from your card (?P<cardNumber>[\dx-]+)` +
@@ -32,7 +33,7 @@ var (
 	)
 )
 
-type matchData struct {
+type instaremMatchData struct {
 	LocalCurrency  string  `regroup:"localCurrency"`
 	LocalAmount    float64 `regroup:"localAmount"`
 	CardNumber     string  `regroup:"cardNumber"`
@@ -42,55 +43,67 @@ type matchData struct {
 	Purpose        string  `regroup:"purpose"`
 }
 
-type SaveInstaremCharge struct{ infra.LogFacade }
-
-func NewSaveInstaremCharge(root infra.RootLogger) (*SaveInstaremCharge, error) {
-	return &SaveInstaremCharge{infra.NewLogger(root, "save_instarem_charge")}, nil
+func (i *instaremMatchData) toModel() *model.Charge {
+	return &model.Charge{
+		LocalCurrency:  i.LocalCurrency,
+		LocalAmount:    i.LocalAmount,
+		CardNumber:     i.CardNumber,
+		Timestamp:      i.Timestamp,
+		ChargeCurrency: i.ChargeCurrency,
+		ChargeAmount:   i.ChargeAmount,
+		Purpose:        i.Purpose,
+	}
 }
 
-func (d *SaveInstaremCharge) Name() string { return "save_instarem_charge" }
+type SaveInstaremCharge struct {
+	infra.LogFacade
+	storage.Storage
+}
 
-func (d *SaveInstaremCharge) Initialize(_ backends.BackendConfig) error { return nil }
+func NewSaveInstaremCharge(root infra.RootLogger, storage storage.Storage) (*SaveInstaremCharge, error) {
+	return &SaveInstaremCharge{
+		infra.NewLogger(root, "save_instarem_charge"),
+		storage,
+	}, nil
+}
 
-func (d *SaveInstaremCharge) Shutdown() error { return nil }
+func (p *SaveInstaremCharge) Name() string { return "save_instarem_charge" }
 
-func (d *SaveInstaremCharge) Handle(ctx context.Context, e *mail.Envelope) (continueProcessing bool, err error) {
+func (p *SaveInstaremCharge) Initialize(_ backends.BackendConfig) error { return nil }
+
+func (p *SaveInstaremCharge) Shutdown() error { return nil }
+
+func (p *SaveInstaremCharge) HandleTaskSaveMail(ctx context.Context, e *mail.Envelope) (stopProcessing bool, err error) {
 	if e.MailFrom.String() != instaremSender.String() {
-		d.Infof(ctx, "Ignoring; expected: %s, got: %s)", instaremSender.String(), e.MailFrom.String())
-		return true, nil
+		p.Debugf(ctx, "Ignoring: expected: %s, got: %s)", instaremSender.String(), e.MailFrom.String())
+		return
 	}
 
-	data := d.extractMarkup(e)
+	data := p.extractMarkup(e)
 
-	text, err := extraction.ExtractXPath(data, contentXPath)
+	text, err := extraction.ExtractXPath(data, instaremContentXPath)
 	if err != nil {
-		d.Infof(ctx, "Ignoring: %v", err)
-		return true, nil
+		p.Debugf(ctx, "Ignoring: %v", err)
+		return
 	}
 
-	match, err := d.matchesPattern(text)
+	match, err := p.matchesPattern(text)
 	if err != nil {
-		d.Errorf(ctx, err, "No match in mail body: '%s'", text)
+		p.Debugf(ctx, "Ignoring: no match in email body: '%s', err: %v", text, err)
+		return
 	}
 
-	go d.save(ctx, match)
-	return true, nil
+	err = match.toModel().Save(ctx, p.Storage)
+	return
 }
 
-func (d *SaveInstaremCharge) extractMarkup(e *mail.Envelope) string {
+func (p *SaveInstaremCharge) extractMarkup(e *mail.Envelope) string {
 	// replace email delimiters
 	data := e.Data.String()
 	return strings.ReplaceAll(data, "=\n", "")
 }
 
-func (d *SaveInstaremCharge) matchesPattern(text string) (match matchData, err error) {
-	err = contentPattern.MatchToTarget(text, &match)
+func (p *SaveInstaremCharge) matchesPattern(text string) (match instaremMatchData, err error) {
+	err = instaremContentPattern.MatchToTarget(text, &match)
 	return
-}
-
-func (d *SaveInstaremCharge) save(ctx context.Context, match matchData) error {
-	// TODO
-	formatted, _ := json.MarshalIndent(match, "", "  ")
-	d.Infof(ctx, string(formatted))
-	return nil
 }

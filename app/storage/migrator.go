@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"errors"
 	"io"
 	"io/fs"
 
@@ -11,9 +12,11 @@ import (
 	"github.com/fiffu/mailtl/lib"
 )
 
-//go:embed migrations/.gitkeep migrations/*
+//go:embed migrations/.gitkeep
+//go:embed migrations/*
 var migrationsFS embed.FS
 var migrator Migrator = sqlite.NewMigrator()
+var errNoMigrations = errors.New("no migrations defined")
 
 type Migrator interface {
 	Setup(txn *sql.Tx, expectedMigrations []string) error
@@ -40,9 +43,12 @@ func Migrate(ctx context.Context, storage Storage) error {
 }
 
 func findMigrations() ([]migration, error) {
-	migrationFiles, err := fs.Glob(migrationsFS, "*.sql")
+	migrationFiles, err := fs.Glob(migrationsFS, "**/*.sql")
 	if err != nil {
 		return nil, err
+	}
+	if len(migrationFiles) == 0 {
+		return nil, errNoMigrations
 	}
 
 	migrationContent := make([]migration, len(migrationFiles))

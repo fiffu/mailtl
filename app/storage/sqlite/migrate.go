@@ -26,17 +26,20 @@ func (m *migrator) Migrate(txn *sql.Tx, schema string, content string) error {
 	} else if exists {
 		return nil
 	}
-
 	return m.migrate(txn, schema, content)
 }
 
-func (m *migrator) checkExists(txn *sql.Tx, schema string) (found bool, err error) {
+func (m *migrator) checkExists(txn *sql.Tx, schema string) (exists bool, err error) {
 	row := txn.QueryRow(`
 		SELECT * FROM schema_migrations WHERE id=? LIMIT 1
 	`, schema)
 
 	err = row.Scan()
-	found = errors.Is(err, sql.ErrNoRows)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	} else if err == nil {
+		exists = true
+	}
 	return
 }
 

@@ -45,8 +45,15 @@ func NewStorage(lc fx.Lifecycle, cfg infra.RootConfig, logger infra.RootLogger) 
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
-			log.Infof(ctx, "Connecting to database")
-			return client.OnStart(ctx)
+			log.Infof(ctx, "Connecting to database: %s", cfg.SQLiteDSN)
+			if err := client.OnStart(ctx); err != nil {
+				return err
+			}
+			if err := Migrate(ctx, client); err != nil {
+				return err
+			}
+			log.Infof(ctx, "Migrations done")
+			return nil
 		},
 		OnStop: func(ctx context.Context) error {
 			log.Infof(ctx, "Closing database connection")
